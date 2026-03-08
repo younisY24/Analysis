@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المحلل الذكي (مع تحديد العمر والجنس)</title>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        body { background-color: var(--light-bg); color: var(--text-color); line-height: 1.6; padding-bottom: 50px; }
+
+        header {
+            background: linear-gradient(135deg, #0056b3, #007bff);
+            color: white; padding: 2rem 1rem; text-align: center;
+            box-shadow: var(--shadow); margin-bottom: 2rem;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+
+        /* Patient Info Card (New) */
+        .patient-info {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .patient-info h3 { color: #0d47a1; margin-bottom: 10px; font-size: 1rem; display: flex; align-items: center; gap: 5px; }
+        .patient-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        /* Tabs */
+        .tabs { display: flex; margin-bottom: 1rem; background: #e9ecef; border-radius: var(--border-radius); padding: 5px; }
+        .tab-btn {
+            flex: 1; padding: 10px; border: none; background: transparent;
+            cursor: pointer; border-radius: 8px; font-weight: bold; color: #666; transition: 0.3s;
+        }
+        .tab-btn.active { background-color: var(--primary-color); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.5s; }
+
+        /* Cards */
+        .card { background: var(--card-bg); border-radius: var(--border-radius); box-shadow: var(--shadow); padding: 1.5rem; margin-bottom: 1.5rem; }
+        .card-header { border-bottom: 2px solid #eee; margin-bottom: 1rem; padding-bottom: 0.5rem; font-weight: bold; color: var(--primary-color); }
+
+        /* Form */
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem; }
+        select, input[type="number"], input[type="file"] { width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; }
+        .btn { display: block; width: 100%; padding: 0.75rem; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn:hover { background-color: #0056b3; }
+        
+        /* Image Upload */
+        .upload-area { border: 2px dashed #ccc; padding: 2rem; text-align: center; border-radius: 8px; cursor: pointer; margin-bottom: 1rem; background: #fafafa; }
+        .upload-area:hover { border-color: var(--primary-color); background: #f0f8ff; }
+        .preview-container { margin-top: 1rem; text-align: center; display: none; }
+        .preview-container img { max-width: 100%; max-height: 250px; border-radius: 8px; border: 1px solid #ddd; }
+        
+        .progress-container { width: 100%; background-color: #e0e0e0; border-radius: 10px; margin-top: 10px; display: none; }
+        .progress-bar { width: 0%; height: 20px; background-color: var(--success-color); text-align: center; line-height: 20px; color: white; border-radius: 10px; transition: width 0.3s; font-size: 0.8rem; }
+        .ocr-raw-text { background: #333; color: #0f0; font-family: monospace; padding: 10px; border-radius: 5px; font-size: 0.8rem; max-height: 150px; overflow-y: auto; margin-top: 10px; display: none; direction: ltr; }
+
+        /* Results */
+        .result-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid #eee; animation: fadeIn 0.5s; }
+        .result-details { font-size: 0.85rem; color: #666; margin-top: 4px; }
+        .status-badge { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem; font-weight: bold; color: white; }
+        .status-normal { background-color: var(--success-color); }
+        .status-high { background-color: var(--danger-color); }
+        .status-low { background-color: var(--warning-color); color: #333; }
+
+        canvas { width: 100%; height: 300px; background-color: #fff; }
+        
+        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: #333; color: white; padding: 10px 20px; border-radius: 5px; opacity: 0; transition: opacity 0.3s; z-index: 1000; pointer-events: none; }
+        .toast.show { opacity: 1; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .disclaimer { text-align: center; font-size: 0.8rem; color: #777; margin-top: 2rem; padding: 1rem; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 8px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>المحلل الذكي للتحاليل الطبية</h1>
+    <p>تحليل دقيق يعتمد على العمر والجنس</p>
+</header>
+
+<main class="container">
+    <!-- Left Column -->
+    <section>
+        
+        <!-- Patient Info Section -->
+        <div class="patient-info">
+            <h3>👤 بيانات المريض (مهمة للدقة)</h3>
+            <div class="patient-grid">
+                <div class="form-group">
+                    <label>الجنس</label>
+                    <select id="patientGender">
+                        <option value="male">ذكر</option>
+                        <option value="female">أنثى</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>العمر (سنة)</label>
+                    <input type="number" id="patientAge" value="30" min="1" max="120">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('manual')">إدخال يدوي</button>
+                <button class="tab-btn" onclick="switchTab('image')">تحليل صورة</button>
+            </div>
+
+            <!-- Tab 1: Manual -->
+            <div id="tab-manual" class="tab-content active">
+                <form id="analysisForm">
+                    <div class="form-group">
+                        <label for="testType">نوع التحليل</label>
+                        <select id="testType" required onchange="updateUnitHint()">
+                            <option value="" disabled selected>-- اختر التحليل --</option>
+                            <option value="hemoglobin">الهيموجلوبين (Hb)</option>
+                            <option value="wbc">كريات الدم البيضاء (WBC)</option>
+                            <option value="platelets">الصفيحات الدموية (Platelets)</option>
+                            <option value="glucose_fasting">سكر الدم (صائم)</option>
+                            <option value="glucose_random">سكر الدم (عشوائي)</option>
+                            <option value="cholesterol">الكوليسترول الكلي</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="testValue">النتيجة</label>
+                        <input type="number" id="testValue" step="0.01" placeholder="القيمة" required>
+                    </div>
+                    <div class="form-group">
+                        <div id="dynamicRangeHint" style="font-size: 0.85rem; color: var(--primary-color); font-weight: bold; background: #e9ecef; padding: 5px; border-radius: 5px;">
+                            اختر تحليلاً لرؤية المعدل الخاص بك
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">تحليل النتيجة</button>
+                </form>
+            </div>
+
+            <!-- Tab 2: Image -->
+            <div id="tab-image" class="tab-content">
+                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                    <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleImageUpload(this)">
+                    <div style="font-size: 2rem; color: #ccc;">📷</div>
+                    <p>اضغط لرفع صورة التحليل</p>
+                    <small>سيتم استخدام العمر والجنس المحددين أعلاه</small>
+                </div>
+                
+                <div class="preview-container" id="previewContainer">
+                    <img id="imagePreview" src="" alt="Preview">
+                    <div class="progress-container" id="progressContainer">
+                        <div class="progress-bar" id="progressBar">0%</div>
+                    </div>
+                    <p id="statusText" style="margin-top:10px; font-weight:bold; color:var(--primary-color);">جاهز</p>
+                    <button class="btn" id="ocrBtn" onclick="processImage()">قراءة وتحليل الصورة</button>
+                    <div id="ocrRaw" class="ocr-raw-text"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Right Column -->
+    <section>
+        <div class="card">
+            <div class="card-header">
+                <span>نتائج التحليل</span>
+                <button onclick="clearHistory()" style="background:none; border:none; color: var(--danger-color); cursor:pointer; font-size:0.8rem;">مسح</button>
+            </div>
+            <div id="resultsContainer">
+                <p style="text-align: center; color: #999; padding: 2rem;">لا توجد نتائج.</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">الرسم البياني</div>
+            <canvas id="resultsChart"></canvas>
+        </div>
+    </section>
+</main>
+
+<div class="toast" id="toast">تمت العملية</div>
+<div class="disclaimer">
+    تنبيه: النتائج تعتمد على المعدلات الطبية العالمية للعمر والجنس المحددين. هذه الأداة لغرض الإرشاد وليست بديلاً عن الطبيب.
+</div>
+
+<script>
+    // --- 1. Base Data ---
+    const medicalData = {
+        hemoglobin: { name: "الهيموجلوبين", unit: "g/dL", keywords: ["hemoglobin", "hb", "hgb"] },
+        wbc: { name: "كريات الدم البيضاء", unit: "x10^9/L", keywords: ["wbc", "white blood"] },
+        platelets: { name: "الصفيحات الدموية", unit: "x10^9/L", keywords: ["platelets", "plt"] },
+        glucose_fasting: { name: "سكر صائم", unit: "mg/dL", keywords: ["glucose", "fasting", "fbs"] },
+        glucose_random: { name: "سكر عشوائي", unit: "mg/dL", keywords: ["random", "rbs"] },
+        cholesterol: { name: "الكوليسترول", unit: "mg/dL", keywords: ["cholesterol", "total"] }
+    };
+
+    let resultsHistory = [];
+    let selectedImageFile = null;
+
+    // --- 2. Dynamic Range Logic (The Core Intelligence) ---
+    function getDynamicRange(type, age, gender) {
+        age = parseInt(age);
+        // القيم الافتراضية (للبالغين الرجال عموماً)
+        let min = 0, max = 999;
+
+        if (type === 'hemoglobin') {
+            if (age < 1) { min = 13.5; max = 20.0; } // رضيع
+            else if (age < 12) { min = 11.0; max = 14.5; } // طفل
+            else { // بالغ
+                if (gender === 'male') { min = 13.5; max = 17.5; }
+                else { min = 12.0; max = 15.5; }
+            }
+        }
+        else if (type === 'cholesterol') {
+            // الأطفال لديهم سقف أقل للكوليسترول
+            if (age < 18) { max = 170; }
+            else { max = 200; }
+        }
+        else if (type === 'wbc') {
+            // الرضع لديهم تعداد أعلى
+            if (age < 1) { min = 9.0; max = 30.0; } 
+            else { min = 4.5; max = 11.0; }
+        }
+        else {
+            // للتحاليل الأخرى التي لا تتغير كثيراً (نستخدم الثوابت العامة)
+            const d = medicalData[type];
+            // تعريف قيم افتراضية للمتغيرات غير المعرفة في منطق if
+            if(type === 'glucose_fasting') { min = 70; max = 100; }
+            if(type === 'glucose_random') { min = 0; max = 140; }
+            if(type === 'platelets') { min = 150; max = 450; }
+        }
+
+        return { min, max };
+    }
+
+    // --- 3. UI Interaction Functions ---
+    
+    // تحديث النص التوضيحي عند تغيير النوع أو بيانات المريض
+    function updateUnitHint() {
+        const type = document.getElementById('testType').value;
+        const age = document.getElementById('patientAge').value;
+        const gender = document.getElementById('patientGender').value;
+        const hintBox = document.getElementById('dynamicRangeHint');
+
+        if (!type) {
+            hintBox.textContent = "اختر تحليلاً لرؤية المعدل الخاص بك";
+            return;
+        }
+
+        const range = getDynamicRange(type, age, gender);
+        const unit = medicalData[type].unit;
+        hintBox.innerHTML = `المعدل الطبيعي لعمر ${age} سنة (${gender === 'male' ? 'ذكر' : 'أنثى'}): <br> <strong>${range.min} - ${range.max} ${unit}</strong>`;
+    }
+
+    // الاستماع لتغيير العمر والجنس لتحديث المعدلات فوراً
+    document.getElementById('patientAge').addEventListener('input', updateUnitHint);
+    document.getElementById('patientGender').addEventListener('change', updateUnitHint);
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        
+        if (tabName === 'manual') {
+            document.querySelector('.tab-btn:first-child').classList.add('active');
+            document.getElementById('tab-manual').classList.add('active');
+        } else {
+            document.querySelector('.tab-btn:last-child').classList.add('active');
+            document.getElementById('tab-image').classList.add('active');
+        }
+    }
+
+    // --- 4. Manual Submission ---
+    document.getElementById('analysisForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const type = document.getElementById('testType').value;
+        const value = parseFloat(document.getElementById('testValue').value);
+        const age = document.getElementById('patientAge').value;
+        const gender = document.getElementById('patientGender').value;
+
+        if (!type || isNaN(value)) return;
+
+        const result = analyzeResult(type, value, age, gender);
+        addResultToHistory(result);
+        document.getElementById('testValue').value = '';
+        showToast("تم التحليل بناءً على بياناتك");
+    });
+
+    // --- 5. Image Processing ---
+    function handleImageUpload(input) {
+        if (input.files && input.files[0]) {
+            selectedImageFile = input.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imagePreview').src = e.target.result;
+                document.getElementById('previewContainer').style.display = 'block';
+                document.getElementById('progressContainer').style.display = 'none';
+                document.getElementById('ocrRaw').style.display = 'none';
+                document.getElementById('statusText').textContent = "جاهز للتحليل";
+            }
+            reader.readAsDataURL(selectedImageFile);
+        }
+    }
+
+    async function processImage() {
+        if (!selectedImageFile) return;
+        const age = document.getElementById('patientAge').value;
+        const gender = document.getElementById('patientGender').value;
+
+        document.getElementById('ocrBtn').disabled = true;
+        document.getElementById('progressContainer').style.display = 'block';
+        document.getElementById('statusText').textContent = "جاري القراءة...";
+
+        try {
+            const { data: { text } } = await Tesseract.recognize(selectedImageFile, 'eng', {
+                logger: m => {
+                    if (m.status === 'recognizing text') {
+                        document.getElementById('progressBar').style.width = Math.round(m.progress * 100) + '%';
+                        document.getElementById('progressBar').textContent = Math.round(m.progress * 100) + '%';
+                    }
+                }
+            });
+
+            document.getElementById('ocrRaw').textContent = text;
+            document.getElementById('ocrRaw').style.display = 'block';
+            extractDataFromOCR(text, age, gender);
+
+        } catch (err) {
+            document.getElementById('statusText').textContent = "خطأ في القراءة";
+            console.error(err);
+        } finally {
+            document.getElementById('ocrBtn').disabled = false;
+        }
+    }
+
+    function extractDataFromOCR(text, age, gender) {
+        let foundCount = 0;
+        const lowerText = text.toLowerCase();
+
+        for (const [key, data] of Object.entries(medicalData)) {
+            if (data.keywords.some(kw => lowerText.includes(kw))) {
+                const matches = [...lowerText.matchAll(/(\d+\.?\d*)/g)];
+                if (matches.length > 0) {
+                    // نفس منطق البحث السابق للعثور على الرقم
+                    let bestValue = null;
+                    const words = lowerText.split(/\s+/);
+                    for (let i = 0; i < words.length; i++) {
+                        if (data.keywords.includes(words[i]) && i + 1 < words.length) {
+                            const num = parseFloat(words[i+1]);
+                            if (!isNaN(num)) { bestValue = num; break; }
+                        }
+                    }
+                    if (bestValue === null) bestValue = parseFloat(matches[0][0]);
+
+                    if (bestValue !== null) {
+                        const result = analyzeResult(key, bestValue, age, gender);
+                        addResultToHistory(result);
+                        foundCount++;
+                    }
+                }
+            }
+        }
+        if (foundCount > 0) showToast(`تم استخراج ${foundCount} نتائج وتحليلها حسب العمر والجنس`);
+        else showToast("لم يتم التعرف على بيانات واضحة");
+    }
+
+    // --- 6. Analysis Engine ---
+    function analyzeResult(type, value, age, gender) {
+        const data = medicalData[type];
+        const range = getDynamicRange(type, age, gender); // الحصول على المعدل الديناميكي
+
+        let status = 'normal', message = 'طبيعي';
+        if (value < range.min) { status = 'low'; message = 'منخفض'; }
+        else if (value > range.max) { status = 'high'; message = 'مرتفع'; }
+
+        return {
+            id: Date.now() + Math.random(),
+            type, name: data.name, value, unit: data.unit,
+            min: range.min, max: range.max, // المعدل المحسوب فعلياً
+            status, message,
+            timestamp: new Date().toLocaleTimeString('ar-EG')
+        };
+    }
+
+    function addResultToHistory(result) {
+        resultsHistory.unshift(result);
+        if (resultsHistory.length > 5) resultsHistory.pop();
+        renderResults();
+        drawChart();
+    }
+
+    function renderResults() {
+        const c = document.getElementById('resultsContainer');
+        if (resultsHistory.length === 0) {
+            c.innerHTML = '<p style="text-align: center; color: #999; padding: 2rem;">لا توجد نتائج.</p>';
+            return;
+        }
+        let html = '';
+        resultsHistory.forEach(res => {
+            html += `
+                <div class="result-item">
+                    <div>
+                        <strong>${res.name}</strong>
+                        <div class="result-details">المعدل المستخدم: ${res.min} - ${res.max} ${res.unit}</div>
+                        <div style="font-size:0.75rem;color:#999">${res.timestamp}</div>
+                    </div>
+                    <div style="text-align:left">
+                        <div style="font-size:1.2rem;font-weight:bold">${res.value} <small>${res.unit}</small></div>
+                        <span class="status-badge status-${res.status}">${res.message}</span>
+                    </div>
+                </div>`;
+        });
+        c.innerHTML = html;
+    }
+
+    function clearHistory() {
+        resultsHistory = [];
+        renderResults();
+        drawChart();
+        showToast("تم المسح");
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg; t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // --- 7. Chart ---
+    function drawChart() {
+        const cvs = document.getElementById('resultsChart');
+        const ctx = cvs.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        const rect = cvs.getBoundingClientRect();
+        cvs.width = rect.width * dpr; cvs.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
+        ctx.clearRect(0, 0, rect.width, rect.height);
+
+        if (resultsHistory.length === 0) {
+            ctx.fillStyle = "#ccc"; ctx.textAlign = "center";
+            ctx.fillText("لا توجد بيانات", rect.width/2, rect.height/2);
+            return;
+        }
+
+        const padding = 40, w = rect.width - padding*2, h = rect.height - padding*2;
+        const barW = 40, gap = (w - (resultsHistory.length * barW)) / (resultsHistory.length + 1);
+
+        ctx.beginPath(); ctx.moveTo(padding, padding); ctx.lineTo(padding, rect.height-padding); ctx.lineTo(rect.width-padding, rect.height-padding); ctx.stroke();
+
+        resultsHistory.forEach((res, i) => {
+            // استخدام المعدل المحسوب لكل نتيجة لتحديد مقياس الرسم البياني
+            const maxRef = res.max * 1.2; 
+            let barH = (res.value / maxRef) * h;
+            if (barH > h) barH = h;
+            
+            const x = padding + gap + (i * (barW + gap));
+            const y = (rect.height - padding) - barH;
+            
+            ctx.fillStyle = res.status === 'high' ? '#dc3545' : res.status === 'low' ? '#ffc107' : '#28a745';
+            ctx.fillRect(x, y, barW, barH);
+
+            ctx.fillStyle = "#333"; ctx.textAlign = "center";
+            ctx.fillText(res.value, x + barW/2, y - 5);
+            ctx.fillText(res.name.split(' ')[0], x + barW/2, rect.height - padding + 15);
+        });
+    }
+    window.addEventListener('resize', drawChart);
+
+    // تشغيل أولي لضمان ظهور المعدل عند فتح الصفحة
+    updateUnitHint();
+</script>
+
+</body>
+</html>
