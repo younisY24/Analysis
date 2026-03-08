@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedAnalyzer Pro — المحلل الطبي العالمي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cyan:#00d4ff; --cyan-dim:rgba(0,212,255,0.12); --cyan-glow:rgba(0,212,255,0.35);
+  --green:#00e5a0; --green-dim:rgba(0,229,160,0.12);
+  --red:#ff4757; --red-dim:rgba(255,71,87,0.12);
+  --amber:#ffa502; --amber-dim:rgba(255,165,2,0.12);
+  --purple:#a78bfa;
+  --bg-void:#050810; --bg-base:#0a0f1e; --bg-card:#0d1526;
+  --bg-elevated:#111d35; --bg-glass:rgba(13,21,38,0.85);
+  --border-subtle:rgba(255,255,255,0.05); --border-glow:rgba(0,212,255,0.2);
+  --border-strong:rgba(255,255,255,0.1);
+  --text-primary:#e8f0fe; --text-secondary:#8899bb; --text-dim:#445577;
+  --shadow-card:0 4px 24px rgba(0,0,0,0.6),0 1px 0 rgba(255,255,255,0.04) inset;
+  --radius:16px; --radius-sm:8px;
+  --ease:0.25s cubic-bezier(0.4,0,0.2,1);
+}
+[data-theme="light"]{
+  --bg-void:#eef2f9; --bg-base:#f4f6fc; --bg-card:#fff;
+  --bg-elevated:#f0f4ff; --bg-glass:rgba(255,255,255,0.9);
+  --border-subtle:rgba(0,0,0,0.06); --border-glow:rgba(0,120,220,0.2);
+  --border-strong:rgba(0,0,0,0.1);
+  --text-primary:#0d1526; --text-secondary:#4a5a7a; --text-dim:#8899bb;
+  --shadow-card:0 4px 24px rgba(0,0,50,0.08);
+  --cyan:#0078dc; --cyan-dim:rgba(0,120,220,0.08); --cyan-glow:rgba(0,120,220,0.3);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'IBM Plex Sans Arabic',sans-serif;
+  background:var(--bg-void); color:var(--text-primary);
+  min-height:100vh; line-height:1.6; overflow-x:hidden;
+}
+body::before{
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:linear-gradient(rgba(0,212,255,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,212,255,0.025) 1px,transparent 1px);
+  background-size:44px 44px;
+}
+body::after{
+  content:''; position:fixed; top:-150px; right:-150px;
+  width:500px; height:500px; pointer-events:none; z-index:0;
+  background:radial-gradient(circle,rgba(0,212,255,0.05) 0%,transparent 70%);
+}
+.hdr{position:sticky;top:0;z-index:200;background:var(--bg-glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--border-glow)}
+.hdr-inner{max-width:1400px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:62px}
+.logo{display:flex;align-items:center;gap:11px}
+.logo-ico{width:38px;height:38px;border-radius:10px;font-size:18px;background:linear-gradient(135deg,var(--cyan),var(--green));display:flex;align-items:center;justify-content:center;box-shadow:0 0 18px var(--cyan-glow)}
+.logo-main{font-size:.95rem;font-weight:700;letter-spacing:-.02em}
+.logo-sub{font-size:.6rem;color:var(--cyan);letter-spacing:.1em;font-family:'IBM Plex Mono',monospace}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.live-badge{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;background:var(--green-dim);border:1px solid rgba(0,229,160,.3);font-size:.68rem;font-weight:700;color:var(--green);font-family:'IBM Plex Mono',monospace}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.6)}}
+.btn-ico{width:36px;height:36px;border-radius:var(--radius-sm);border:1px solid var(--border-strong);background:var(--bg-elevated);color:var(--text-secondary);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:var(--ease)}
+.btn-ico:hover{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-dim)}
+.layout{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:370px 1fr;gap:20px;padding:22px 24px 70px;position:relative;z-index:1}
+@media(max-width:1050px){.layout{grid-template-columns:1fr}}
+.card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius);box-shadow:var(--shadow-card);overflow:hidden;margin-bottom:18px}
+.card-hdr{padding:13px 18px;border-bottom:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:space-between}
+.card-title{display:flex;align-items:center;gap:8px;font-size:.73rem;font-weight:700;color:var(--text-secondary);font-family:'IBM Plex Mono',monospace;letter-spacing:.09em;text-transform:uppercase}
+.card-ico{width:27px;height:27px;border-radius:7px;font-size:13px;background:var(--cyan-dim);border:1px solid var(--border-glow);display:flex;align-items:center;justify-content:center}
+.card-body{padding:18px}
+.pat-hdr{padding:14px 18px;background:linear-gradient(135deg,rgba(0,212,255,.08),rgba(0,229,160,.04));border-bottom:1px solid var(--border-glow);display:flex;align-items:center;gap:10px}
+.pat-ava{width:42px;height:42px;border-radius:50%;flex-shrink:0;font-size:18px;background:linear-gradient(135deg,var(--cyan),var(--green));display:flex;align-items:center;justify-content:center}
+.pat-lbl{font-size:.67rem;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;letter-spacing:.08em}
+.pat-name{font-size:.95rem;font-weight:600}
+.pat-grid{padding:14px 18px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.flabel{font-size:.67rem;font-weight:700;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px}
+.finput{width:100%;padding:9px 12px;background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);color:var(--text-primary);font-family:'IBM Plex Sans Arabic',sans-serif;font-size:.88rem;transition:var(--ease);outline:none}
+.finput:focus{border-color:var(--cyan);box-shadow:0 0 0 3px var(--cyan-dim)}
+.finput option{background:var(--bg-card)}
+.tabs{display:flex;background:var(--bg-elevated);border-radius:var(--radius-sm);padding:4px;gap:4px;margin-bottom:18px}
+.tbtn{flex:1;padding:8px;border:none;background:transparent;border-radius:6px;font-family:'IBM Plex Sans Arabic',sans-serif;font-size:.82rem;font-weight:600;color:var(--text-dim);cursor:pointer;transition:var(--ease);display:flex;align-items:center;justify-content:center;gap:5px}
+.tbtn.active{background:var(--bg-card);color:var(--cyan);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.tcontent{display:none;animation:fades .3s ease}
+.tcontent.active{display:block}
+@keyframes fades{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.range-hint{padding:9px 12px;background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);font-size:.77rem;color:var(--text-secondary);margin-bottom:13px;display:flex;align-items:center;gap:7px;font-family:'IBM Plex Mono',monospace}
+.range-val{color:var(--cyan);font-weight:600}
+.btn-primary{width:100%;padding:11px 18px;background:linear-gradient(135deg,var(--cyan),rgba(0,212,255,.7));border:none;border-radius:var(--radius-sm);color:#050810;font-family:'IBM Plex Sans Arabic',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:var(--ease);box-shadow:0 4px 18px rgba(0,212,255,.25);display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,212,255,.38)}
+.btn-primary:active{transform:none}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-ghost{width:100%;padding:9px;background:transparent;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);color:var(--text-secondary);font-family:'IBM Plex Sans Arabic',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;transition:var(--ease);margin-top:10px}
+.btn-ghost:hover{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-dim)}
+.btn-danger{background:transparent;border:none;color:var(--red);font-size:.73rem;font-family:'IBM Plex Sans Arabic',sans-serif;cursor:pointer;opacity:.6;transition:var(--ease)}
+.btn-danger:hover{opacity:1}
+.upload-zone{border:2px dashed var(--border-strong);border-radius:12px;padding:26px 18px;text-align:center;cursor:pointer;transition:var(--ease);background:var(--bg-elevated);position:relative;overflow:hidden}
+.upload-zone:hover,.upload-zone.dragging{border-color:var(--cyan);background:var(--cyan-dim)}
+.upload-ico{font-size:30px;margin-bottom:7px;display:block}
+.upload-t{font-size:.88rem;font-weight:600;margin-bottom:3px}
+.upload-s{font-size:.72rem;color:var(--text-dim)}
+.img-preview{margin-top:12px;border-radius:10px;overflow:hidden;border:1px solid var(--border-subtle)}
+.img-preview img{width:100%;max-height:170px;object-fit:cover;display:block}
+.prog-wrap{margin-top:12px}
+.prog-track{height:5px;background:var(--bg-elevated);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;width:0%;background:linear-gradient(90deg,var(--cyan),var(--green));box-shadow:0 0 8px var(--cyan);transition:width .3s ease}
+.prog-label{font-size:.71rem;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;margin-top:6px;text-align:center;min-height:16px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.stat{background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:12px;padding:13px 14px;text-align:center;transition:var(--ease)}
+.stat:hover{border-color:var(--cyan)}
+.stat-n{font-size:1.55rem;font-weight:700;font-family:'IBM Plex Mono',monospace;line-height:1}
+.stat-l{font-size:.65rem;color:var(--text-dim);margin-top:3px;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em}
+.s-all .stat-n{color:var(--cyan)}.s-ok .stat-n{color:var(--green)}.s-bad .stat-n{color:var(--red)}
+.r-empty{text-align:center;padding:44px 18px;color:var(--text-dim)}
+.r-empty-ico{font-size:34px;opacity:.3;display:block;margin-bottom:10px}
+.r-item{padding:13px 0;border-bottom:1px solid var(--border-subtle);display:flex;align-items:center;gap:12px;animation:fades .35s ease;transition:all .18s}
+.r-item:last-child{border-bottom:none}
+.r-item:hover{background:var(--bg-elevated);margin:0 -18px;padding:13px 18px;border-radius:8px}
+.r-num{width:24px;height:24px;border-radius:5px;flex-shrink:0;background:var(--bg-elevated);border:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:center;font-size:.67rem;font-weight:700;color:var(--text-dim);font-family:'IBM Plex Mono',monospace}
+.r-main{flex:1;min-width:0}
+.r-name{font-size:.88rem;font-weight:600}
+.r-meta{font-size:.69rem;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;margin-top:1px}
+.r-bar{height:3px;background:var(--bg-elevated);border-radius:2px;margin-top:5px;overflow:hidden}
+.r-bar-fill{height:100%;border-radius:2px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.bar-n{background:var(--green)}.bar-h{background:var(--red)}.bar-l{background:var(--amber)}.bar-u{background:var(--purple)}
+.r-val{font-size:1.05rem;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--cyan);text-align:left;white-space:nowrap;display:flex;flex-direction:column;align-items:flex-end}
+.r-unit{font-size:.62rem;font-weight:400;color:var(--text-dim)}
+.badge{padding:3px 9px;border-radius:20px;font-size:.67rem;font-weight:700;font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;white-space:nowrap;flex-shrink:0}
+.bn{background:var(--green-dim);color:var(--green);border:1px solid rgba(0,229,160,.25)}
+.bh{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,71,87,.25)}
+.bl{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(255,165,2,.25)}
+.bu{background:rgba(167,139,250,.08);color:var(--purple);border:1px solid rgba(167,139,250,.25)}
+.summary{margin-top:14px;padding:14px 16px;border-radius:11px;animation:fades .4s ease}
+.sum-ok{background:var(--green-dim);border:1px solid rgba(0,229,160,.25)}
+.sum-warn{background:var(--red-dim);border:1px solid rgba(255,71,87,.25)}
+.sum-amber{background:var(--amber-dim);border:1px solid rgba(255,165,2,.25)}
+.sum-title{font-size:.83rem;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.sum-ok .sum-title{color:var(--green)}.sum-warn .sum-title{color:var(--red)}.sum-amber .sum-title{color:var(--amber)}
+.sum-desc{font-size:.76rem;color:var(--text-secondary);line-height:1.7}
+.sum-points{list-style:none;margin-top:8px}
+.sum-points li{font-size:.74rem;color:var(--text-secondary);padding:3px 0;padding-right:14px;position:relative;line-height:1.5}
+.sum-points li::before{content:'•';position:absolute;right:0;color:var(--cyan)}
+.chart-wrap{background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:12px;padding:14px;overflow:hidden}
+#chart{width:100%;height:240px;display:block}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--bg-elevated);color:var(--text-primary);border:1px solid var(--border-glow);padding:9px 18px;border-radius:30px;font-size:.79rem;font-weight:600;opacity:0;transition:all .3s;z-index:9999;pointer-events:none;backdrop-filter:blur(10px);font-family:'IBM Plex Mono',monospace;display:flex;align-items:center;gap:7px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0}
+.ai-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;font-size:.67rem;font-weight:700;background:linear-gradient(135deg,rgba(0,212,255,.15),rgba(0,229,160,.08));border:1px solid var(--border-glow);color:var(--cyan);font-family:'IBM Plex Mono',monospace;margin-bottom:12px}
+.disc{text-align:center;padding:10px 18px;font-size:.68rem;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;border-top:1px solid var(--border-subtle);line-height:1.6}
+.ocr-result{background:var(--bg-elevated);border:1px solid var(--border-glow);border-radius:10px;padding:14px;margin-top:12px;font-size:.78rem;line-height:1.7;color:var(--text-secondary);display:none}
+.ocr-result.show{display:block}
+.bulk-item{display:flex;align-items:center;gap:8px;margin-bottom:8px;animation:fades .3s ease}
+.bulk-tag{padding:2px 8px;border-radius:5px;font-size:.65rem;font-weight:700;font-family:'IBM Plex Mono',monospace}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg-base)}::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--cyan)}
+.section-title{font-size:.72rem;font-weight:700;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border-subtle)}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-inner">
+    <div class="logo">
+      <div class="logo-ico">🧬</div>
+      <div>
+        <div class="logo-main">MedAnalyzer Pro</div>
+        <div class="logo-sub">v4.0 · Smart Engine · بدون إنترنت</div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <div class="live-badge"><div class="live-dot"></div>OFFLINE MODE</div>
+      <button class="btn-ico" onclick="toggleTheme()" title="تغيير المظهر">☀️</button>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside>
+
+    <!-- Patient -->
+    <div class="card">
+      <div class="pat-hdr">
+        <div class="pat-ava">👤</div>
+        <div>
+          <div class="pat-lbl">PATIENT PROFILE</div>
+          <div class="pat-name">بيانات المريض</div>
+        </div>
+      </div>
+      <div class="pat-grid">
+        <div>
+          <div class="flabel">GENDER</div>
+          <select class="finput" id="gender" onchange="updateHint()">
+            <option value="male">ذكر</option>
+            <option value="female">أنثى</option>
+          </select>
+        </div>
+        <div>
+          <div class="flabel">AGE / سنة</div>
+          <input class="finput" type="number" id="age" value="30" min="1" max="120" oninput="updateHint()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Input card -->
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title"><div class="card-ico">📥</div>إدخال التحليل</div>
+      </div>
+      <div class="card-body">
+        <div class="tabs">
+          <button class="tbtn active" onclick="switchTab('manual')">⌨️ يدوي</button>
+          <button class="tbtn" onclick="switchTab('image')">📋 نصي</button>
+          <button class="tbtn" onclick="switchTab('vision')">📷 صورة AI</button>
+        </div>
+
+        <!-- MANUAL TAB -->
+        <div id="tab-manual" class="tcontent active">
+          <div style="margin-bottom:13px">
+            <div class="flabel">نوع التحليل</div>
+            <select class="finput" id="testType" onchange="updateHint()">
+              <option value="" disabled selected>— اختر التحليل —</option>
+              <optgroup label="🩸 صورة الدم الكاملة">
+                <option value="hemoglobin">هيموجلوبين (Hb)</option>
+                <option value="wbc">كريات بيضاء (WBC)</option>
+                <option value="rbc">كريات حمراء (RBC)</option>
+                <option value="platelets">صفيحات (PLT)</option>
+                <option value="hct">حجم الخلايا (HCT)</option>
+                <option value="mcv">متوسط الحجم (MCV)</option>
+                <option value="mch">MCH</option>
+                <option value="mchc">MCHC</option>
+                <option value="rdw">تباين الحجم (RDW)</option>
+              </optgroup>
+              <optgroup label="🍬 سكر الدم">
+                <option value="glucose_fasting">سكر صائم (FBS)</option>
+                <option value="glucose_random">سكر عشوائي (RBS)</option>
+                <option value="hba1c">سكر تراكمي (HbA1c)</option>
+              </optgroup>
+              <optgroup label="❤️ دهون الدم">
+                <option value="cholesterol">كوليسترول كلي</option>
+                <option value="triglycerides">ترجليسريد (TG)</option>
+                <option value="hdl">HDL جيد</option>
+                <option value="ldl">LDL سيء</option>
+              </optgroup>
+              <optgroup label="🫀 وظائف الكلى">
+                <option value="urea">يوريا / BUN</option>
+                <option value="creatinine">كرياتينين</option>
+                <option value="uric_acid">حمض اليوريك</option>
+              </optgroup>
+              <optgroup label="🫁 وظائف الكبد">
+                <option value="sgot">SGOT (AST)</option>
+                <option value="sgpt">SGPT (ALT)</option>
+                <option value="bilirubin_total">بيليروبين كلي</option>
+                <option value="bilirubin_direct">بيليروبين مباشر</option>
+                <option value="alkaline_phos">ALP فوسفاتاز</option>
+                <option value="total_protein">بروتين كلي</option>
+                <option value="albumin">ألبيومين</option>
+              </optgroup>
+              <optgroup label="🦋 الغدة الدرقية">
+                <option value="tsh">TSH</option>
+                <option value="t3">T3</option>
+                <option value="t4">T4</option>
+              </optgroup>
+              <optgroup label="💊 فيتامينات ومعادن">
+                <option value="vitamin_d">فيتامين D</option>
+                <option value="b12">فيتامين B12</option>
+                <option value="iron">حديد (Fe)</option>
+                <option value="ferritin">فيريتين</option>
+                <option value="calcium">كالسيوم</option>
+                <option value="sodium">صوديوم</option>
+                <option value="potassium">بوتاسيوم</option>
+              </optgroup>
+              <optgroup label="🔬 التفريقة الدموية">
+                <option value="neutrophils">نيتروفيل %</option>
+                <option value="lymphocytes">ليمفوسيت %</option>
+                <option value="monocytes">مونوسيت %</option>
+                <option value="eosinophils">إيزينوفيل %</option>
+                <option value="basophils">باسوفيل %</option>
+              </optgroup>
+              <optgroup label="🫀 التهاب والقلب">
+                <option value="crp">CRP بروتين التفاعل</option>
+                <option value="esr">سرعة الترسيب (ESR)</option>
+              </optgroup>
+            </select>
+          </div>
+          <div style="margin-bottom:13px">
+            <div class="flabel">القيمة</div>
+            <input class="finput" type="number" id="testValue" step="0.01" placeholder="0.00">
+          </div>
+          <div class="range-hint">
+            <span style="color:var(--cyan);font-size:11px">ℹ</span>
+            <span id="rangeText">اختر تحليلاً لرؤية النطاق الطبيعي</span>
+          </div>
+          <button class="btn-primary" onclick="addManual()">＋ تحليل وإضافة</button>
+        </div>
+
+        <!-- TEXT / BULK TAB -->
+        <div id="tab-image" class="tcontent">
+          <div class="ai-tag">🧠 محرك التحليل الذكي — بدون إنترنت</div>
+          <div style="margin-bottom:10px">
+            <div class="flabel">الصق نتائج التحليل هنا</div>
+            <textarea class="finput" id="bulkText" rows="7" placeholder="مثال:&#10;Hemoglobin: 11.2 g/dL&#10;WBC: 9500&#10;Platelets: 180000&#10;Glucose: 105&#10;Creatinine: 1.1&#10;TSH: 3.2&#10;Vitamin D: 18" style="resize:vertical;line-height:1.7"></textarea>
+          </div>
+          <button class="btn-primary" onclick="parseBulkText()">🔍 تحليل النص تلقائياً</button>
+          <div class="ocr-result" id="ocrResult"></div>
+        </div>
+
+        <!-- VISION AI TAB -->
+        <div id="tab-vision" class="tcontent">
+          <div class="ai-tag">✨ Claude AI Vision — قراءة الصورة مباشرة</div>
+
+          <div class="upload-zone" id="visionZone"
+            onclick="document.getElementById('visionFileInput').click()"
+            ondragover="visionDrag(event,'over')" ondragleave="visionDrag(event,'leave')" ondrop="visionDrag(event,'drop')">
+            <span class="upload-ico">🔬</span>
+            <div class="upload-t">ارفع صورة التحليل المخبري</div>
+            <div class="upload-s">JPG · PNG · WEBP · اسحب وأفلت</div>
+            <input type="file" id="visionFileInput" accept="image/*" style="display:none" onchange="visionFileSelected(this)">
+          </div>
+
+          <div id="visionPreview" style="display:none;margin-top:10px;border-radius:10px;overflow:hidden;border:1px solid var(--border-glow)">
+            <img id="visionImg" style="width:100%;max-height:180px;object-fit:cover;display:block">
+            <div style="padding:7px 12px;background:var(--bg-elevated);font-size:.7rem;color:var(--text-dim);font-family:'IBM Plex Mono',monospace" id="visionFileName"></div>
+          </div>
+
+          <div id="visionProg" style="display:none;margin-top:10px">
+            <div class="prog-track"><div class="prog-fill" id="visionProgFill"></div></div>
+            <div class="prog-label" id="visionProgLabel">جارٍ تحليل الصورة...</div>
+          </div>
+
+          <button class="btn-primary" id="visionBtn" onclick="analyzeImage()" style="margin-top:12px" disabled>
+            🤖 تحليل الصورة بالذكاء الاصطناعي
+          </button>
+        </div>
+
+      </div>
+      <div class="disc">⚕️ للاستخدام التوعوي فقط · استشر طبيبك دائماً</div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title"><div class="card-ico">⚡</div>إجراءات سريعة</div>
+      </div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn-ghost" style="display:flex" onclick="printReport()">🖨️ طباعة التقرير</button>
+        <button class="btn-ghost" style="display:flex" onclick="exportCSV()">📊 تصدير CSV</button>
+        <button class="btn-ghost" style="display:flex;color:var(--red);border-color:var(--red-dim)" onclick="clearAll()">🗑️ مسح الكل</button>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- MAIN RESULTS -->
+  <main>
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title"><div class="card-ico">📊</div>لوحة النتائج</div>
+        <span id="timestampBadge" style="font-size:.67rem;color:var(--text-dim);font-family:'IBM Plex Mono',monospace"></span>
+      </div>
+      <div class="card-body">
+        <div class="stats">
+          <div class="stat s-all"><div class="stat-n" id="statAll">0</div><div class="stat-l">TOTAL</div></div>
+          <div class="stat s-ok"><div class="stat-n" id="statOk">0</div><div class="stat-l">NORMAL</div></div>
+          <div class="stat s-bad"><div class="stat-n" id="statBad">0</div><div class="stat-l">ABNORMAL</div></div>
+        </div>
+
+        <div class="chart-wrap" style="margin-bottom:16px">
+          <div class="section-title">مؤشر القيم</div>
+          <canvas id="chart"></canvas>
+        </div>
+
+        <div id="resultsContainer">
+          <div class="r-empty">
+            <span class="r-empty-ico">🔬</span>
+            <div style="font-size:.88rem;font-weight:600;margin-bottom:4px">لا توجد نتائج بعد</div>
+            <div style="font-size:.75rem">أضف تحاليل من القائمة الجانبية</div>
+          </div>
+        </div>
+
+        <div id="summaryBox"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"><div class="toast-dot"></div><span id="toastMsg"></span></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// MEDICAL REFERENCE DATABASE
+// ═══════════════════════════════════════════════
+const TESTS = {
+  hemoglobin:      { name:'هيموجلوبين', unit:'g/dL',   male:[13.5,17.5], female:[12,15.5], low:'فقر الدم — تحقق من نقص الحديد أو B12',                high:'تكاثر كريات حمراء أو الجفاف' },
+  wbc:             { name:'كريات بيضاء', unit:'×10³/μL', male:[4,11],     female:[4,11],   low:'نقص المناعة أو مشكلة في نخاع العظم',                  high:'التهاب أو عدوى بكتيرية أو فيروسية' },
+  rbc:             { name:'كريات حمراء', unit:'×10⁶/μL', male:[4.5,5.9], female:[4,5.2],  low:'فقر الدم — نقص إنتاج الكريات',                         high:'تكاثر الكريات أو الجفاف' },
+  platelets:       { name:'صفيحات',     unit:'×10³/μL', male:[150,400],  female:[150,400], low:'خطر نزيف — نقص الصفيحات',                              high:'خطر تجلط — ارتفاع الصفيحات' },
+  hct:             { name:'حجم الخلايا', unit:'%',       male:[41,53],    female:[36,46],  low:'فقر الدم',                                              high:'الجفاف أو تكاثر الكريات' },
+  mcv:             { name:'متوسط حجم الكريات', unit:'fL', male:[80,100], female:[80,100], low:'فقر الدم صغير الكريات (نقص حديد)',                     high:'فقر الدم كبير الكريات (نقص B12/فولات)' },
+  mch:             { name:'MCH',        unit:'pg',       male:[27,33],    female:[27,33],  low:'فقر دم ناقص اللون',                                    high:'فقر دم كبير الكريات' },
+  mchc:            { name:'MCHC',       unit:'g/dL',     male:[32,36],    female:[32,36],  low:'فقر دم ناقص اللون',                                    high:'تكتل الكريات أو الجفاف' },
+  rdw:             { name:'تباين الحجم', unit:'%',       male:[11.5,14.5],female:[11.5,14.5],low:'نادر',                                               high:'اختلاف أحجام الكريات — فحص نوع فقر الدم' },
+  glucose_fasting: { name:'سكر صائم',  unit:'mg/dL',    male:[70,99],    female:[70,99],  low:'نقص سكر الدم — تناول سكريات فوراً',                   high:'ارتفاع سكر الدم — احتمال السكري' },
+  glucose_random:  { name:'سكر عشوائي', unit:'mg/dL',   male:[70,140],   female:[70,140], low:'نقص سكر الدم',                                         high:'احتمال السكري — تأكد بسكر صائم' },
+  hba1c:           { name:'سكر تراكمي', unit:'%',        male:[4,5.6],   female:[4,5.6],  low:'نادر جداً',                                            high:'5.7-6.4% مقدمات سكري · >6.5% سكري' },
+  cholesterol:     { name:'كوليسترول كلي', unit:'mg/dL', male:[0,199],   female:[0,199],  low:'نادر — قد يشير لسوء التغذية',                          high:'200-239 حدي · >240 مرتفع — خطر قلبي' },
+  triglycerides:   { name:'ترجليسريد',  unit:'mg/dL',    male:[0,149],   female:[0,149],  low:'جيد',                                                  high:'150-199 حدي · >200 مرتفع — خطر قلبي' },
+  hdl:             { name:'HDL جيد',    unit:'mg/dL',    male:[40,999],   female:[50,999], low:'منخفض — زيادة خطر أمراض القلب',                       high:'ممتاز — يحمي القلب' },
+  ldl:             { name:'LDL سيء',    unit:'mg/dL',    male:[0,99],     female:[0,99],   low:'ممتاز',                                                high:'100-129 مقبول · 130-159 حدي · >160 خطر' },
+  urea:            { name:'يوريا/BUN',  unit:'mg/dL',    male:[7,25],     female:[7,20],   low:'قد يشير لسوء التغذية أو زيادة الإماهة',               high:'ضعف وظائف الكلى أو الجفاف' },
+  creatinine:      { name:'كرياتينين',  unit:'mg/dL',    male:[0.7,1.3],  female:[0.5,1.1],low:'نقص عضلي',                                            high:'ضعف وظائف الكلى — فحص الكلى' },
+  uric_acid:       { name:'حمض اليوريك', unit:'mg/dL',   male:[3.5,7.2], female:[2.6,6.0],low:'نادر',                                                 high:'النقرس أو حصى الكلى — احتمالي' },
+  sgot:            { name:'SGOT (AST)', unit:'U/L',       male:[0,40],     female:[0,32],   low:'طبيعي أو منخفض',                                      high:'تلف خلايا الكبد أو القلب' },
+  sgpt:            { name:'SGPT (ALT)', unit:'U/L',       male:[0,41],     female:[0,33],   low:'طبيعي',                                               high:'التهاب الكبد أو تلف خلايا الكبد' },
+  bilirubin_total: { name:'بيليروبين كلي', unit:'mg/dL', male:[0.2,1.2], female:[0.2,1.2],low:'طبيعي',                                                high:'اليرقان أو مشكلة في الكبد' },
+  bilirubin_direct:{ name:'بيليروبين مباشر', unit:'mg/dL',male:[0,0.3],  female:[0,0.3],  low:'طبيعي',                                               high:'انسداد القنوات الصفراوية' },
+  alkaline_phos:   { name:'ALP فوسفاتاز', unit:'U/L',    male:[44,147],  female:[35,104], low:'نقص فيتامين B12 أو قصور الغدة الدرقية',              high:'مرض عظام أو انسداد صفراوي أو مرض كبد' },
+  total_protein:   { name:'بروتين كلي', unit:'g/dL',     male:[6.3,8.2], female:[6.3,8.2],low:'سوء تغذية أو مشكلة في الكبد',                        high:'الجفاف أو التهاب مزمن' },
+  albumin:         { name:'ألبيومين',   unit:'g/dL',     male:[3.5,5.0], female:[3.5,5.0],low:'سوء تغذية أو مشكلة في الكبد أو الكلى',               high:'الجفاف' },
+  tsh:             { name:'TSH',        unit:'mIU/L',     male:[0.4,4.0], female:[0.4,4.0],low:'فرط نشاط الغدة الدرقية',                              high:'قصور الغدة الدرقية' },
+  t3:              { name:'T3',         unit:'ng/dL',     male:[80,200],   female:[80,200], low:'قصور الغدة الدرقية',                                   high:'فرط نشاط الغدة الدرقية' },
+  t4:              { name:'T4',         unit:'μg/dL',     male:[5.0,12.0], female:[5.0,12.0],low:'قصور الغدة الدرقية',                                high:'فرط نشاط الغدة الدرقية' },
+  vitamin_d:       { name:'فيتامين D',  unit:'ng/mL',    male:[30,100],   female:[30,100], low:'<20 نقص حاد · 20-29 قصور — مكملات ضرورية',           high:'>100 زيادة — قلل الجرعة' },
+  b12:             { name:'فيتامين B12', unit:'pg/mL',   male:[200,900],  female:[200,900],low:'نقص B12 — خطر فقر الدم العصبي',                       high:'عادةً غير ضار — راجع الطبيب' },
+  iron:            { name:'حديد (Fe)',  unit:'μg/dL',     male:[65,175],   female:[50,170], low:'نقص الحديد — فقر الدم محتمل',                         high:'داء ترسب الأصبغة الدموية' },
+  ferritin:        { name:'فيريتين',   unit:'ng/mL',     male:[24,336],   female:[11,307], low:'مخازن الحديد فارغة — نقص حديد مؤكد',                 high:'التهاب أو تلف كبد أو تراكم حديد' },
+  calcium:         { name:'كالسيوم',   unit:'mg/dL',     male:[8.5,10.5], female:[8.5,10.5],low:'نقص كالسيوم — تشنجات ممكنة',                        high:'فرط كالسيوم الدم — راجع الطبيب' },
+  sodium:          { name:'صوديوم',    unit:'mEq/L',     male:[136,145],  female:[136,145], low:'نقص الصوديوم — الدوخة والتعب',                       high:'جفاف أو اختلال توازن السوائل' },
+  potassium:       { name:'بوتاسيوم',  unit:'mEq/L',     male:[3.5,5.0], female:[3.5,5.0],low:'نقص البوتاسيوم — تشنج العضلات',                       high:'فرط البوتاسيوم — خطر القلب' },
+  neutrophils:     { name:'نيتروفيل %', unit:'%',         male:[50,70],    female:[50,70],  low:'ضعف مناعة أو عدوى فيروسية',                           high:'عدوى بكتيرية أو التهاب' },
+  lymphocytes:     { name:'ليمفوسيت %', unit:'%',         male:[20,40],   female:[20,40],  low:'ضعف مناعة',                                            high:'عدوى فيروسية أو سرطان الدم احتمالي' },
+  monocytes:       { name:'مونوسيت %', unit:'%',          male:[2,8],      female:[2,8],   low:'نادر',                                                 high:'عدوى أو مرض مزمن' },
+  eosinophils:     { name:'إيزينوفيل %', unit:'%',        male:[1,4],     female:[1,4],    low:'طبيعي',                                                high:'حساسية أو طفيليات' },
+  basophils:       { name:'باسوفيل %', unit:'%',          male:[0,1],      female:[0,1],   low:'طبيعي',                                                high:'أمراض دموية نادرة — راجع الطبيب' },
+  crp:             { name:'CRP',        unit:'mg/L',      male:[0,5],      female:[0,5],    low:'لا التهاب — ممتاز',                                    high:'5-10 التهاب خفيف · >10 التهاب حاد' },
+  esr:             { name:'سرعة الترسيب', unit:'mm/hr',   male:[0,15],    female:[0,20],   low:'طبيعي',                                                high:'التهاب أو عدوى أو مرض مزمن' }
+};
+
+// ═══════════════════════════════════════════════
+// BULK TEXT PARSER — يتعرف على القيم تلقائياً
+// ═══════════════════════════════════════════════
+const TEXT_PATTERNS = [
+  { keys:['hemoglobin','hgb','hb','haemoglobin','هيموجلوبين'], id:'hemoglobin' },
+  { keys:['wbc','white blood','كريات بيضاء','leukocytes'], id:'wbc' },
+  { keys:['rbc','red blood','كريات حمراء','erythrocytes'], id:'rbc' },
+  { keys:['platelets','plt','صفيحات','thrombocytes'], id:'platelets' },
+  { keys:['hematocrit','hct','حجم الخلايا'], id:'hct' },
+  { keys:['mcv','mean corpuscular volume'], id:'mcv' },
+  { keys:['mch '], id:'mch' },
+  { keys:['mchc'], id:'mchc' },
+  { keys:['rdw'], id:'rdw' },
+  { keys:['fasting glucose','fbs','سكر صائم','glucose fasting'], id:'glucose_fasting' },
+  { keys:['random glucose','rbs','سكر عشوائي','glucose random','glucose'], id:'glucose_random' },
+  { keys:['hba1c','a1c','hemoglobin a1c','سكر تراكمي'], id:'hba1c' },
+  { keys:['total cholesterol','cholesterol','كوليسترول'], id:'cholesterol' },
+  { keys:['triglycerides','tg','ترجليسريد'], id:'triglycerides' },
+  { keys:['hdl'], id:'hdl' },
+  { keys:['ldl'], id:'ldl' },
+  { keys:['urea','bun','يوريا'], id:'urea' },
+  { keys:['creatinine','كرياتينين'], id:'creatinine' },
+  { keys:['uric acid','حمض اليوريك'], id:'uric_acid' },
+  { keys:['ast','sgot'], id:'sgot' },
+  { keys:['alt','sgpt'], id:'sgpt' },
+  { keys:['total bilirubin','bilirubin total','بيليروبين كلي'], id:'bilirubin_total' },
+  { keys:['direct bilirubin','bilirubin direct'], id:'bilirubin_direct' },
+  { keys:['alkaline phosphatase','alp'], id:'alkaline_phos' },
+  { keys:['total protein','بروتين كلي'], id:'total_protein' },
+  { keys:['albumin','ألبيومين'], id:'albumin' },
+  { keys:['tsh'], id:'tsh' },
+  { keys:[' t3 ','triiodothyronine'], id:'t3' },
+  { keys:[' t4 ','thyroxine'], id:'t4' },
+  { keys:['vitamin d','vit d','فيتامين d','25-oh'], id:'vitamin_d' },
+  { keys:['vitamin b12','b12','فيتامين b12','cobalamin'], id:'b12' },
+  { keys:['serum iron','iron','حديد'], id:'iron' },
+  { keys:['ferritin','فيريتين'], id:'ferritin' },
+  { keys:['calcium','كالسيوم'], id:'calcium' },
+  { keys:['sodium','na ','صوديوم'], id:'sodium' },
+  { keys:['potassium','k ','بوتاسيوم'], id:'potassium' },
+  { keys:['neutrophil','neutro','نيتروفيل'], id:'neutrophils' },
+  { keys:['lymphocyte','lympho','ليمفوسيت'], id:'lymphocytes' },
+  { keys:['monocyte','mono','مونوسيت'], id:'monocytes' },
+  { keys:['eosinophil','eosin','إيزينوفيل'], id:'eosinophils' },
+  { keys:['basophil','baso','باسوفيل'], id:'basophils' },
+  { keys:['crp','c-reactive','بروتين التفاعل'], id:'crp' },
+  { keys:['esr','sedimentation','ترسيب'], id:'esr' }
+];
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let results = [];
+
+// ═══════════════════════════════════════════════
+// RANGE LOGIC
+// ═══════════════════════════════════════════════
+function getRange(id) {
+  const t = TESTS[id];
+  if (!t) return null;
+  const g = document.getElementById('gender').value;
+  return g === 'male' ? t.male : t.female;
+}
+
+function classify(id, val) {
+  const r = getRange(id);
+  if (!r) return 'unknown';
+  if (val < r[0]) return 'low';
+  if (val > r[1]) return 'high';
+  return 'normal';
+}
+
+function updateHint() {
+  const id = document.getElementById('testType').value;
+  if (!id || !TESTS[id]) { document.getElementById('rangeText').textContent = 'اختر تحليلاً لرؤية النطاق الطبيعي'; return; }
+  const r = getRange(id);
+  const t = TESTS[id];
+  document.getElementById('rangeText').innerHTML = `<span class="range-val">${r[0]} – ${r[1]} ${t.unit}</span>&nbsp;&nbsp;النطاق الطبيعي`;
+}
+
+// ═══════════════════════════════════════════════
+// ADD MANUAL RESULT
+// ═══════════════════════════════════════════════
+function addManual() {
+  const id = document.getElementById('testType').value;
+  const val = parseFloat(document.getElementById('testValue').value);
+  if (!id) { showToast('اختر نوع التحليل أولاً', '⚠️'); return; }
+  if (isNaN(val) || val < 0) { showToast('أدخل قيمة صحيحة', '⚠️'); return; }
+  addResult(id, val);
+  document.getElementById('testValue').value = '';
+  showToast(`تم تحليل ${TESTS[id].name}`, '✅');
+}
+
+function addResult(id, val) {
+  const t = TESTS[id];
+  const status = classify(id, val);
+  // replace if exists
+  const idx = results.findIndex(r => r.id === id);
+  const entry = { id, name: t.name, unit: t.unit, val, status, range: getRange(id) };
+  if (idx >= 0) results[idx] = entry;
+  else results.push(entry);
+  render();
+}
+
+// ═══════════════════════════════════════════════
+// BULK TEXT PARSER
+// ═══════════════════════════════════════════════
+function parseBulkText() {
+  const text = document.getElementById('bulkText').value.trim().toLowerCase();
+  if (!text) { showToast('الصق النص أولاً', '⚠️'); return; }
+
+  const found = [];
+  const lines = text.split('\n');
+
+  for (const line of lines) {
+    for (const pattern of TEXT_PATTERNS) {
+      const matched = pattern.keys.some(k => line.includes(k.toLowerCase()));
+      if (!matched) continue;
+      // extract number from line
+      const numMatch = line.match(/[\d]+\.?[\d]*/g);
+      if (!numMatch) continue;
+      // pick the most relevant number (skip small indices/dates)
+      const nums = numMatch.map(Number).filter(n => n > 0 && n < 100000);
+      if (!nums.length) continue;
+      const val = nums[0];
+      if (!found.find(f => f.id === pattern.id)) {
+        found.push({ id: pattern.id, val });
+      }
+      break;
+    }
+  }
+
+  if (!found.length) {
+    showToast('لم يُتعرف على قيم — تحقق من الصيغة', '❌');
+    return;
+  }
+
+  found.forEach(f => addResult(f.id, f.val));
+
+  // show parsed summary
+  const ocrEl = document.getElementById('ocrResult');
+  ocrEl.className = 'ocr-result show';
+  ocrEl.innerHTML = `<div style="color:var(--cyan);font-weight:700;font-size:.78rem;margin-bottom:8px">✅ تم التعرف على ${found.length} تحليل:</div>` +
+    found.map(f => {
+      const t = TESTS[f.id];
+      const s = classify(f.id, f.val);
+      const color = s === 'normal' ? 'var(--green)' : s === 'low' ? 'var(--amber)' : 'var(--red)';
+      return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+        <span style="color:${color};font-size:11px">●</span>
+        <span style="font-weight:600">${t.name}</span>
+        <span style="color:var(--cyan);font-family:'IBM Plex Mono',monospace">${f.val} ${t.unit}</span>
+      </div>`;
+    }).join('');
+
+  showToast(`تم تحليل ${found.length} نتيجة تلقائياً`, '🎉');
+}
+
+// ═══════════════════════════════════════════════
+// RENDER RESULTS
+// ═══════════════════════════════════════════════
+function render() {
+  const container = document.getElementById('resultsContainer');
+  document.getElementById('statAll').textContent = results.length;
+  document.getElementById('statOk').textContent = results.filter(r => r.status === 'normal').length;
+  document.getElementById('statBad').textContent = results.filter(r => r.status !== 'normal').length;
+  document.getElementById('timestampBadge').textContent = new Date().toLocaleTimeString('ar');
+
+  if (!results.length) {
+    container.innerHTML = `<div class="r-empty"><span class="r-empty-ico">🔬</span><div style="font-size:.88rem;font-weight:600;margin-bottom:4px">لا توجد نتائج بعد</div><div style="font-size:.75rem">أضف تحاليل من القائمة الجانبية</div></div>`;
+    document.getElementById('summaryBox').innerHTML = '';
+    drawChart();
+    return;
+  }
+
+  container.innerHTML = results.map((r, i) => {
+    const [lo, hi] = r.range;
+    const pct = Math.min(100, Math.max(5, ((r.val - lo) / (hi - lo + 0.001)) * 100));
+    const barClass = r.status === 'normal' ? 'bar-n' : r.status === 'high' ? 'bar-h' : 'bar-l';
+    const badgeClass = r.status === 'normal' ? 'bn' : r.status === 'high' ? 'bh' : 'bl';
+    const badgeText = r.status === 'normal' ? 'NORMAL' : r.status === 'high' ? 'HIGH ↑' : 'LOW ↓';
+    const t = TESTS[r.id];
+    const tip = r.status === 'normal' ? 'القيمة ضمن النطاق الطبيعي' : r.status === 'high' ? t.high : t.low;
+    return `<div class="r-item">
+      <div class="r-num">${i + 1}</div>
+      <div class="r-main">
+        <div class="r-name">${r.name}</div>
+        <div class="r-meta">${lo} – ${hi} ${r.unit} · ${tip}</div>
+        <div class="r-bar"><div class="r-bar-fill ${barClass}" style="width:${pct}%"></div></div>
+      </div>
+      <div class="r-val">${r.val}<span class="r-unit">${r.unit}</span></div>
+      <span class="badge ${badgeClass}">${badgeText}</span>
+      <button class="btn-danger" onclick="removeItem(${i})">✕</button>
+    </div>`;
+  }).join('');
+
+  renderSummary();
+  drawChart();
+}
+
+// ═══════════════════════════════════════════════
+// SMART SUMMARY ENGINE
+// ═══════════════════════════════════════════════
+function renderSummary() {
+  const box = document.getElementById('summaryBox');
+  const abnormal = results.filter(r => r.status !== 'normal');
+  if (!results.length) { box.innerHTML = ''; return; }
+
+  if (!abnormal.length) {
+    box.innerHTML = `<div class="summary sum-ok">
+      <div class="sum-title">✅ جميع التحاليل طبيعية</div>
+      <div class="sum-desc">نتائجك تقع ضمن المعدلات الطبيعية المرجعية. واصل نمط حياتك الصحي وأجرِ فحوصات دورية.</div>
+    </div>`;
+    return;
+  }
+
+  // Build smart interpretation
+  const points = [];
+  const highs = [], lows = [];
+
+  for (const r of abnormal) {
+    const t = TESTS[r.id];
+    if (r.status === 'high') highs.push(`↑ ${r.name} (${r.val} ${r.unit}): ${t.high}`);
+    else lows.push(`↓ ${r.name} (${r.val} ${r.unit}): ${t.low}`);
+  }
+
+  // Specific patterns
+  const ids = results.map(r => r.id);
+  const valOf = (id) => results.find(r => r.id === id)?.val;
+
+  // Anemia pattern
+  if (['hemoglobin','mcv','iron','ferritin'].filter(x => ids.includes(x)).length >= 2) {
+    const hb = valOf('hemoglobin'), mcv = valOf('mcv'), fe = valOf('iron'), ferr = valOf('ferritin');
+    if ((hb && hb < 12) || (fe && fe < 60) || (ferr && ferr < 12)) {
+      if (mcv && mcv < 80) points.push('🩸 نمط فقر الدم صغير الكريات: احتمال نقص الحديد — يُنصح بمكملات الحديد بعد استشارة الطبيب');
+      else if (mcv && mcv > 100) points.push('🩸 نمط فقر الدم كبير الكريات: احتمال نقص فيتامين B12 أو حمض الفوليك');
+    }
+  }
+
+  // Diabetes pattern
+  const fbs = valOf('glucose_fasting'), hba1c = valOf('hba1c');
+  if (fbs && fbs >= 126) points.push('🍬 سكر صائم ≥ 126 mg/dL: يستوجب تأكيد تشخيص السكري من نوع 2');
+  else if (fbs && fbs >= 100) points.push('🍬 سكر صائم حدي (100-125 mg/dL): مرحلة مقدمات السكري — تغيير نمط الحياة ضروري');
+  if (hba1c && hba1c >= 6.5) points.push(`📊 HbA1c ${hba1c}%: يؤكد السكري — يلزم متابعة طبية منتظمة`);
+
+  // Lipid pattern
+  const chol = valOf('cholesterol'), ldl = valOf('ldl'), tg = valOf('triglycerides');
+  if ((chol && chol >= 240) || (ldl && ldl >= 160)) points.push('❤️ ارتفاع الكوليسترول: خطر قلبي وعائي — حمية غذائية وممارسة الرياضة');
+
+  // Thyroid
+  const tsh = valOf('tsh');
+  if (tsh && tsh > 4) points.push('🦋 TSH مرتفع: قصور الغدة الدرقية محتمل — يستوجب تقييم هرمون T4');
+  if (tsh && tsh < 0.4) points.push('🦋 TSH منخفض: فرط نشاط الغدة الدرقية محتمل — راجع الطبيب');
+
+  // Kidney
+  const creat = valOf('creatinine');
+  const gender = document.getElementById('gender').value;
+  if (creat && ((gender === 'male' && creat > 1.3) || (gender === 'female' && creat > 1.1))) {
+    points.push('🫀 كرياتينين مرتفع: احتمال ضعف وظائف الكلى — يُوصى بفحص GFR');
+  }
+
+  // Inflammation
+  const crp = valOf('crp'), esr = valOf('esr');
+  if ((crp && crp > 10) || (esr && esr > 30)) points.push('🔥 مؤشرات التهاب مرتفعة: يُنصح بالبحث عن مصدر الالتهاب أو العدوى');
+
+  const allPoints = [...points, ...highs.slice(0,3), ...lows.slice(0,3)];
+  const isWarning = abnormal.length > 0;
+
+  box.innerHTML = `<div class="summary ${isWarning ? 'sum-warn' : 'sum-amber'}">
+    <div class="sum-title">${isWarning ? '⚠️' : 'ℹ️'} ${abnormal.length} ${abnormal.length === 1 ? 'نتيجة خارج النطاق' : 'نتائج خارج النطاق الطبيعي'}</div>
+    <div class="sum-desc">هذا التحليل استرشادي فقط. يُنصح باستشارة طبيب مختص لتفسير النتائج.</div>
+    ${allPoints.length ? `<ul class="sum-points">${allPoints.map(p => `<li>${p}</li>`).join('')}</ul>` : ''}
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════
+// CHART
+// ═══════════════════════════════════════════════
+let chartCtx, chartAnim;
+function drawChart() {
+  const canvas = document.getElementById('chart');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth;
+  canvas.width = W * 2; canvas.height = 480;
+  canvas.style.width = W + 'px'; canvas.style.height = '240px';
+  ctx.scale(2, 2);
+  const w = W, h = 240;
+
+  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  ctx.clearRect(0, 0, w, h);
+
+  if (!results.length) {
+    ctx.fillStyle = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+    ctx.font = '13px IBM Plex Mono, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('أضف تحاليل لرؤية المخطط', w / 2, h / 2);
+    return;
+  }
+
+  const items = results.slice(0, 12);
+  const barW = Math.min(40, (w - 60) / items.length - 10);
+  const gap = (w - 60 - barW * items.length) / (items.length + 1);
+  const maxH = h - 55;
+
+  items.forEach((r, i) => {
+    const [lo, hi] = r.range;
+    const span = hi - lo || 1;
+    let pct;
+    if (r.status === 'normal') pct = (r.val - lo) / span;
+    else if (r.status === 'high') pct = 1 + Math.min(0.5, (r.val - hi) / span);
+    else pct = Math.max(0.05, (r.val / lo) * 0.5);
+
+    pct = Math.min(1.4, Math.max(0.05, pct));
+    const bh = pct * maxH;
+    const x = 30 + gap + i * (barW + gap);
+    const y = h - 35 - bh;
+
+    const color = r.status === 'normal' ? '#00e5a0' : r.status === 'high' ? '#ff4757' : '#ffa502';
+    const grd = ctx.createLinearGradient(0, y, 0, h - 35);
+    grd.addColorStop(0, color);
+    grd.addColorStop(1, color + '22');
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.roundRect(x, y, barW, bh, [4, 4, 0, 0]);
+    ctx.fill();
+
+    // label
+    ctx.fillStyle = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)';
+    ctx.font = `${Math.max(7, Math.min(9, 200 / items.length))}px IBM Plex Mono, monospace`;
+    ctx.textAlign = 'center';
+    const shortName = r.name.length > 6 ? r.name.slice(0, 6) : r.name;
+    ctx.fillText(shortName, x + barW / 2, h - 18);
+
+    // value
+    ctx.fillStyle = color;
+    ctx.font = `bold 8px IBM Plex Mono, monospace`;
+    ctx.fillText(r.val, x + barW / 2, y - 4);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════
+function removeItem(idx) {
+  results.splice(idx, 1);
+  render();
+  showToast('تم الحذف', '🗑️');
+}
+
+function clearAll() {
+  if (!results.length) return;
+  results = [];
+  render();
+  document.getElementById('ocrResult').className = 'ocr-result';
+  showToast('تم مسح جميع النتائج', '🗑️');
+}
+
+function switchTab(name) {
+  const tabs = ['manual','image','vision'];
+  document.querySelectorAll('.tbtn').forEach((b, i) => b.classList.toggle('active', tabs[i] === name));
+  tabs.forEach(t => {
+    const el = document.getElementById('tab-' + t);
+    if (el) el.classList.toggle('active', t === name);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// VISION / AI IMAGE ANALYSIS
+// ═══════════════════════════════════════════════
+let visionBase64 = null, visionMime = null;
+
+function toggleApiVis() {}
+
+function visionDrag(e, state) {
+  e.preventDefault();
+  const z = document.getElementById('visionZone');
+  z.classList.toggle('dragging', state === 'over');
+  if (state === 'drop') {
+    const file = e.dataTransfer.files[0];
+    if (file) loadVisionFile(file);
+  }
+}
+
+function visionFileSelected(input) {
+  if (input.files[0]) loadVisionFile(input.files[0]);
+}
+
+function loadVisionFile(file) {
+  if (!file.type.startsWith('image/')) { showToast('يرجى اختيار صورة صالحة', '⚠️'); return; }
+  visionMime = file.type;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    visionBase64 = dataUrl.split(',')[1];
+    document.getElementById('visionImg').src = dataUrl;
+    document.getElementById('visionFileName').textContent = `📎 ${file.name} · ${(file.size/1024).toFixed(1)} KB`;
+    document.getElementById('visionPreview').style.display = 'block';
+    document.getElementById('visionBtn').disabled = false;
+    showToast('تم تحميل الصورة — اضغط تحليل', '🖼️');
+  };
+  reader.readAsDataURL(file);
+}
+
+async function analyzeImage() {
+  if (!visionBase64) { showToast('ارفع صورة أولاً', '⚠️'); return; }
+
+  const btn = document.getElementById('visionBtn');
+  const prog = document.getElementById('visionProg');
+  const fill = document.getElementById('visionProgFill');
+  const label = document.getElementById('visionProgLabel');
+
+  btn.disabled = true;
+  prog.style.display = 'block';
+  fill.style.background = '';
+
+  const steps = [
+    [20, 'إرسال الصورة إلى Claude AI...'],
+    [45, 'تحليل محتوى التحليل المخبري...'],
+    [70, 'استخراج القيم والأرقام...'],
+    [88, 'معالجة النتائج...']
+  ];
+  let si = 0;
+  const interval = setInterval(() => {
+    if (si < steps.length) { fill.style.width = steps[si][0] + '%'; label.textContent = steps[si][1]; si++; }
+  }, 800);
+
+  try {
+    const gender = document.getElementById('gender').value === 'male' ? 'ذكر' : 'أنثى';
+    const age = document.getElementById('age').value;
+
+    const prompt = `أنت محلل مخبري طبي. المريض: ${gender}، العمر: ${age} سنة.
+استخرج كل القيم الرقمية من صورة التحليل المخبري.
+أجب فقط بـ JSON بالصيغة التالية بدون أي نص خارجه:
+{"tests":[{"name":"اسم التحليل","key":"المفتاح","value":0,"unit":"الوحدة"}]}
+المفاتيح المتاحة: hemoglobin,wbc,rbc,platelets,hct,mcv,mch,mchc,rdw,glucose_fasting,glucose_random,hba1c,cholesterol,triglycerides,hdl,ldl,urea,creatinine,uric_acid,sgot,sgpt,bilirubin_total,bilirubin_direct,alkaline_phos,total_protein,albumin,tsh,t3,t4,vitamin_d,b12,iron,ferritin,calcium,sodium,potassium,neutrophils,lymphocytes,monocytes,eosinophils,basophils,crp,esr`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1024,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: visionMime, data: visionBase64 } },
+            { type: 'text', text: prompt }
+          ]
+        }]
+      })
+    });
+
+    clearInterval(interval);
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error?.message || `فشل الاتصال (${response.status})`);
+    }
+
+    const data = await response.json();
+    fill.style.width = '100%';
+    label.textContent = '✅ اكتمل التحليل!';
+
+    const raw = data.content.map(c => c.text || '').join('');
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('تعذّر قراءة رد الذكاء الاصطناعي');
+    const parsed = JSON.parse(jsonMatch[0]);
+
+    if (!parsed.tests?.length) throw new Error('لم يتم التعرف على قيم في الصورة');
+
+    let added = 0;
+    for (const t of parsed.tests) {
+      if (TESTS[t.key] && !isNaN(t.value) && t.value > 0) {
+        addResult(t.key, parseFloat(t.value));
+        added++;
+      }
+    }
+
+    if (added === 0) throw new Error('لم تُضف نتائج — تحقق من وضوح الصورة');
+
+    showToast(`✨ تم استخراج ${added} نتيجة من الصورة`, '🎉');
+    setTimeout(() => { prog.style.display = 'none'; btn.disabled = false; fill.style.width = '0%'; }, 2500);
+
+  } catch (err) {
+    clearInterval(interval);
+    fill.style.width = '100%';
+    fill.style.background = 'var(--red)';
+    label.textContent = `❌ ${err.message}`;
+    btn.disabled = false;
+    setTimeout(() => { prog.style.display = 'none'; fill.style.background = ''; fill.style.width = '0%'; }, 5000);
+  }
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.querySelector('.btn-ico').textContent = isDark ? '🌙' : '☀️';
+  drawChart();
+}
+
+function showToast(msg, icon = '✅') {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = `${icon} ${msg}`;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function exportCSV() {
+  if (!results.length) { showToast('لا توجد بيانات للتصدير', '⚠️'); return; }
+  const rows = [['التحليل', 'القيمة', 'الوحدة', 'الحالة', 'النطاق الطبيعي']];
+  results.forEach(r => rows.push([r.name, r.val, r.unit, r.status === 'normal' ? 'طبيعي' : r.status === 'high' ? 'مرتفع' : 'منخفض', `${r.range[0]}-${r.range[1]}`]));
+  const csv = '\uFEFF' + rows.map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'medical-results.csv';
+  a.click();
+  showToast('تم تصدير الملف', '📊');
+}
+
+function printReport() {
+  if (!results.length) { showToast('لا توجد نتائج للطباعة', '⚠️'); return; }
+  const w = window.open('', '_blank');
+  const gender = document.getElementById('gender').value === 'male' ? 'ذكر' : 'أنثى';
+  const age = document.getElementById('age').value;
+  w.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8">
+  <title>تقرير طبي - MedAnalyzer Pro</title>
+  <style>body{font-family:Arial,sans-serif;padding:30px;direction:rtl}h1{color:#0078dc}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #ddd;padding:10px;text-align:right}th{background:#0078dc;color:#fff}.normal{color:green}.high{color:red}.low{color:orange}.footer{margin-top:30px;font-size:12px;color:#888;border-top:1px solid #eee;padding-top:10px}</style>
+  </head><body>
+  <h1>🧬 تقرير MedAnalyzer Pro</h1>
+  <p>الجنس: ${gender} | العمر: ${age} سنة | التاريخ: ${new Date().toLocaleDateString('ar')}</p>
+  <table><tr><th>التحليل</th><th>القيمة</th><th>الوحدة</th><th>النطاق الطبيعي</th><th>الحالة</th><th>التفسير</th></tr>
+  ${results.map(r => {
+    const t = TESTS[r.id];
+    const tip = r.status === 'normal' ? '—' : r.status === 'high' ? t.high : t.low;
+    const cls = r.status === 'normal' ? 'normal' : r.status === 'high' ? 'high' : 'low';
+    const label = r.status === 'normal' ? '✅ طبيعي' : r.status === 'high' ? '⬆️ مرتفع' : '⬇️ منخفض';
+    return `<tr><td>${r.name}</td><td>${r.val}</td><td>${r.unit}</td><td>${r.range[0]}-${r.range[1]}</td><td class="${cls}">${label}</td><td>${tip}</td></tr>`;
+  }).join('')}
+  </table>
+  <div class="footer">⚕️ هذا التقرير للأغراض التوعوية فقط. يرجى استشارة الطبيب المختص لتفسير النتائج واتخاذ القرار الطبي المناسب. | MedAnalyzer Pro v4.0</div>
+  </body></html>`);
+  w.document.close();
+  setTimeout(() => w.print(), 500);
+}
+
+// Resize chart on window resize
+window.addEventListener('resize', () => { if (results.length) drawChart(); });
+// Initial render
+render();
+</script>
+</body>
+</html>
